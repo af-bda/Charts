@@ -12,9 +12,15 @@
 import Foundation
 import CoreGraphics
 
+@objc public enum BarGradientOrientation: Int
+{
+    case vertical
+    case horizontal
+}
 
 open class BarChartDataSet: BarLineScatterCandleBubbleChartDataSet, IBarChartDataSet
 {
+    
     private func initialize()
     {
         self.highlightColor = NSUIColor.black
@@ -50,83 +56,51 @@ open class BarChartDataSet: BarLineScatterCandleBubbleChartDataSet, IBarChartDat
     {
         _entryCountStacks = 0
         
-        for i in 0 ..< entries.count
-        {
-            if let vals = entries[i].yValues
-            {
-                _entryCountStacks += vals.count
-            }
-            else
-            {
-                _entryCountStacks += 1
-            }
-        }
+        entries.forEach { _entryCountStacks += $0.yValues?.count ?? 1 }
     }
     
     /// calculates the maximum stacksize that occurs in the Entries array of this DataSet
     private func calcStackSize(entries: [BarChartDataEntry])
     {
-        for i in 0 ..< entries.count
+        for e in entries where (e.yValues?.count ?? 0) > _stackSize
         {
-            if let vals = entries[i].yValues
-            {
-                if vals.count > _stackSize
-                {
-                    _stackSize = vals.count
-                }
-            }
+            _stackSize = e.yValues!.count
         }
     }
     
     open override func calcMinMax(entry e: ChartDataEntry)
     {
-        guard let e = e as? BarChartDataEntry
+        guard let e = e as? BarChartDataEntry,
+            !e.y.isNaN
             else { return }
         
-        if !e.y.isNaN
+        if e.yValues == nil
         {
-            if e.yValues == nil
-            {
-                if e.y < _yMin
-                {
-                    _yMin = e.y
-                }
-                
-                if e.y > _yMax
-                {
-                    _yMax = e.y
-                }
-            }
-            else
-            {
-                if -e.negativeSum < _yMin
-                {
-                    _yMin = -e.negativeSum
-                }
-                
-                if e.positiveSum > _yMax
-                {
-                    _yMax = e.positiveSum
-                }
-            }
-            
-            calcMinMaxX(entry: e)
+            _yMin = Swift.min(e.y, _yMin)
+            _yMax = Swift.max(e.y, _yMax)
         }
+        else
+        {
+            _yMin = Swift.min(-e.negativeSum, _yMin)
+            _yMax = Swift.max(e.positiveSum, _yMax)
+        }
+
+        calcMinMaxX(entry: e)
     }
     
-    /// The maximum number of bars that can be stacked upon another in this DataSet.
+    /// - returns: The maximum number of bars that can be stacked upon another in this DataSet.
     open var stackSize: Int
     {
         return _stackSize
     }
     
-    /// `true` if this DataSet is stacked (stacksize > 1) or not.
+    /// - returns: `true` if this DataSet is stacked (stacksize > 1) or not.
     open var isStacked: Bool
     {
         return _stackSize > 1 ? true : false
     }
     
-    /// The overall entry count, including counting each stack-value individually
+    /// - returns: The overall entry count, including counting each stack-value individually
     @objc open var entryCountStacks: Int
     {
         return _entryCountStacks
@@ -149,8 +123,24 @@ open class BarChartDataSet: BarLineScatterCandleBubbleChartDataSet, IBarChartDat
     /// the alpha value (transparency) that is used for drawing the highlight indicator bar. min = 0.0 (fully transparent), max = 1.0 (fully opaque)
     open var highlightAlpha = CGFloat(120.0 / 255.0)
     
-    // MARK: - NSCopying
+    /// array of gradient colors [[color1, color2], [color3, color4]]
+    open var barGradientColors: [[NSUIColor]]?
     
+    open var barGradientOrientation: BarGradientOrientation = .vertical
+    
+    /// - returns: The gradient colors at the given index of the DataSet's gradient color array.
+    /// This prevents out-of-bounds by performing a modulus on the gradient color index, so colours will repeat themselves.
+    open func barGradientColor(at index: Int) -> [NSUIColor]?
+    {
+        guard let gradientColors = barGradientColors else {
+            return nil
+            
+        }
+        return gradientColors[index % gradientColors.count]
+    }
+    
+    // MARK: - NSCopying
+        
     open override func copy(with zone: NSZone? = nil) -> Any
     {
         let copy = super.copy(with: zone) as! BarChartDataSet
@@ -159,8 +149,6 @@ open class BarChartDataSet: BarLineScatterCandleBubbleChartDataSet, IBarChartDat
         copy.stackLabels = stackLabels
 
         copy.barShadowColor = barShadowColor
-        copy.barBorderWidth = barBorderWidth
-        copy.barBorderColor = barBorderColor
         copy.highlightAlpha = highlightAlpha
         return copy
     }

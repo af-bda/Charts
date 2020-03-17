@@ -412,7 +412,7 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                                 yPos: y + yOffset,
                                 font: valueFont,
                                 align: textAlign,
-                                color: dataSet.valueTextColorAt(j))
+                                color: dataSet.valueTextColorAt(j), anchor: .zero, angleRadians: 0.0)
                         }
                         
                         if let icon = e.icon, dataSet.isDrawIconsEnabled
@@ -493,7 +493,7 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                                     yPos: rect.origin.y + yOffset,
                                     font: valueFont,
                                     align: textAlign,
-                                    color: dataSet.valueTextColorAt(index))
+                                    color: dataSet.valueTextColorAt(index), anchor: .zero, angleRadians: 0.0)
                             }
                             
                             if let icon = e.icon, dataSet.isDrawIconsEnabled
@@ -595,7 +595,7 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                                         yPos: y + yOffset,
                                         font: valueFont,
                                         align: textAlign,
-                                        color: dataSet.valueTextColorAt(index))
+                                        color: dataSet.valueTextColorAt(index), anchor: .zero, angleRadians: 0.0)
                                 }
                                 
                                 if let icon = e.icon, dataSet.isDrawIconsEnabled

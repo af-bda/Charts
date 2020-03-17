@@ -21,7 +21,7 @@ open class ChartBaseDataSet: NSObject, IChartDataSet, NSCopying
         
         // default color
         colors.append(NSUIColor(red: 140.0/255.0, green: 234.0/255.0, blue: 255.0/255.0, alpha: 1.0))
-        valueColors.append(.labelOrBlack)
+        valueColors.append(NSUIColor.black)
     }
     
     @objc public init(label: String?)
@@ -30,7 +30,7 @@ open class ChartBaseDataSet: NSObject, IChartDataSet, NSCopying
         
         // default color
         colors.append(NSUIColor(red: 140.0/255.0, green: 234.0/255.0, blue: 255.0/255.0, alpha: 1.0))
-        valueColors.append(.labelOrBlack)
+        valueColors.append(NSUIColor.black)
         
         self.label = label
     }
@@ -329,7 +329,9 @@ open class ChartBaseDataSet: NSObject, IChartDataSet, NSCopying
     
     /// the font for the value-text labels
     open var valueFont: NSUIFont = NSUIFont.systemFont(ofSize: 7.0)
-    
+    /// The rotation angle (in degrees) for value-text labels
+    @objc open var valueLabelAngle: CGFloat = CGFloat(0.0)
+
     /// The form to draw for this dataset in the legend.
     open var form = Legend.Form.default
     
